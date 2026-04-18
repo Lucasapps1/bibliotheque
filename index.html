@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ma Bibliothèque</title>
+
+<!-- PWA / iOS -->
+
+<meta name="application-name" content="Ma Bibliothèque">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bibliothèque">
+<meta name="theme-color" content="#1a1208">
+<meta name="description" content="Ma bibliothèque personnelle — gestion de livres avec scan de couverture">
+
+<!-- Manifest inline via JS (no external file needed) -->
+
+<script>
+(function(){
+  const icon = generateIcon();
+  const manifest = {
+    name: "Ma Bibliothèque",
+    short_name: "Bibliothèque",
+    description: "Gestion de bibliothèque personnelle",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#faf7f2",
+    theme_color: "#1a1208",
+    orientation: "portrait",
+    icons: [
+      { src: icon, sizes: "192x192", type: "image/png" },
+      { src: icon, sizes: "512x512", type: "image/png" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest'; link.href = url;
+  document.head.appendChild(link);
+
+  // Apple touch icon
+  const iconLink = document.createElement('link');
+  iconLink.rel = 'apple-touch-icon';
+  iconLink.href = icon;
+  document.head.appendChild(iconLink);
+
+  function generateIcon() {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    const ctx = c.getContext('2d');
+    // Background
+    ctx.fillStyle = '#1a1208';
+    roundRect(ctx, 0, 0, 512, 512, 80);
+    ctx.fill();
+    // Gold band top
+    ctx.fillStyle = '#b8860b';
+    ctx.fillRect(0, 80, 512, 8);
+    ctx.fillRect(0, 424, 512, 8);
+    // Book spines
+    const colors = ['#8b3a2a','#4a5c4e','#b8860b','#2d4a6e'];
+    const widths = [70,55,80,60];
+    let x = 96;
+    widths.forEach((w,i)=>{
+      ctx.fillStyle = colors[i];
+      roundRect(ctx, x, 120, w, 280, 6);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillRect(x+8, 140, 4, 240);
+      x += w + 18;
+    });
+    // Title text
+    ctx.fillStyle = '#d4a843';
+    ctx.font = 'bold 48px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Ma', 256, 460);
+    return c.toDataURL('image/png');
+  }
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+  }
+})();
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1208; --parchment: #f5f0e8; --cream: #faf7f2;
+    --gold: #b8860b; --gold-light: #d4a843; --rust: #8b3a2a;
+    --sage: #4a5c4e; --border: #d4c9b0; --shadow: rgba(26,18,8,0.12);
+  }
+  body { font-family:'DM Sans',sans-serif; background-color:var(--cream); color:var(--ink); min-height:100vh;
+    background-image: radial-gradient(ellipse at 20% 0%,rgba(184,134,11,.06) 0%,transparent 60%), radial-gradient(ellipse at 80% 100%,rgba(139,58,42,.05) 0%,transparent 60%); }
+
+header { background:var(–ink); color:var(–parchment); padding:calc(env(safe-area-inset-top, 0px) + 2rem) 2rem 1.5rem; position:relative; overflow:hidden; }
+header::before { content:’’; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(184,134,11,.04) 60px,rgba(184,134,11,.04) 61px); }
+.header-inner { max-width:900px; margin:0 auto; position:relative; }
+.header-label { font-weight:300; font-size:.7rem; letter-spacing:.3em; text-transform:uppercase; color:var(–gold-light); margin-bottom:.5rem; }
+header h1 { font-family:‘Playfair Display’,serif; font-size:clamp(2rem,5vw,3rem); font-weight:700; letter-spacing:-.02em; line-height:1.1; }
+header h1 em { font-style:italic; color:var(–gold-light); }
+.header-stats { margin-top:1rem; display:flex; gap:1.5rem; flex-wrap:wrap; }
+.stat { display:flex; align-items:baseline; gap:.4rem; }
+.stat-num { font-family:‘Playfair Display’,serif; font-size:1.4rem; color:var(–gold-light); }
+.stat-label { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:rgba(245,240,232,.55); }
+
+main { max-width:900px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+
+.toolbar { display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; }
+.search-wrap { flex:1; min-width:200px; position:relative; }
+.search-wrap svg { position:absolute; left:.9rem; top:50%; transform:translateY(-50%); color:var(–gold); pointer-events:none; }
+input[type=“text”],input[type=“number”],select,textarea { width:100%; padding:.65rem .9rem .65rem 2.4rem; border:1.5px solid var(–border); border-radius:4px; background:#fff; font-family:‘DM Sans’,sans-serif; font-size:.88rem; color:var(–ink); transition:border-color .2s; outline:none; }
+input[type=“text”]:focus,input[type=“number”]:focus,select:focus,textarea:focus { border-color:var(–gold); box-shadow:0 0 0 3px rgba(184,134,11,.1); }
+.filter-select { flex:0 0 auto; min-width:140px; padding:.65rem .9rem; }
+.filter-select,select { padding-left:.9rem; }
+.btn { padding:.65rem 1.2rem; border:none; border-radius:4px; font-family:‘DM Sans’,sans-serif; font-size:.85rem; font-weight:500; cursor:pointer; transition:all .18s; white-space:nowrap; }
+.btn-primary { background:var(–ink); color:var(–parchment); letter-spacing:.04em; }
+.btn-primary:hover { background:#2d2010; transform:translateY(-1px); box-shadow:0 3px 10px var(–shadow); }
+.btn-gold { background:var(–gold); color:#fff; }
+.btn-gold:hover { background:var(–gold-light); transform:translateY(-1px); }
+.btn-camera { background:var(–sage); color:#fff; display:flex; align-items:center; gap:.4rem; }
+.btn-camera:hover { background:#3a4c3e; transform:translateY(-1px); }
+.btn-sm { padding:.35rem .75rem; font-size:.78rem; }
+.btn-danger { background:var(–rust); color:#fff; }
+.btn-danger:hover { background:#a04030; }
+
+.section-title { font-family:‘Playfair Display’,serif; font-size:1rem; font-weight:400; font-style:italic; color:var(–gold); margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid var(–border); }
+.book-list { display:flex; flex-direction:column; gap:.75rem; }
+
+.book-card { background:#fff; border:1.5px solid var(–border); border-radius:6px; padding:1rem 1.2rem; display:grid; grid-template-columns:1fr auto; gap:.5rem 1rem; align-items:start; transition:box-shadow .2s,border-color .2s; position:relative; animation:fadeIn .3s ease both; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.book-card:hover { box-shadow:0 4px 18px var(–shadow); border-color:var(–gold); }
+.book-card.is-read { border-left:4px solid var(–sage); }
+.book-card.not-read { border-left:4px solid var(–border); }
+.book-inner { display:flex; gap:.75rem; align-items:flex-start; }
+.book-cover-thumb { width:44px; height:60px; object-fit:cover; border-radius:3px; border:1px solid var(–border); flex-shrink:0; }
+.book-main { min-width:0; flex:1; }
+.book-title { font-family:‘Playfair Display’,serif; font-size:1.05rem; font-weight:700; line-height:1.3; color:var(–ink); margin-bottom:.15rem; }
+.book-author { font-family:‘Libre Baskerville’,serif; font-size:.82rem; font-style:italic; color:var(–gold); margin-bottom:.3rem; }
+.book-meta { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+.tag { font-size:.7rem; font-weight:500; letter-spacing:.08em; padding:.15rem .55rem; border-radius:20px; text-transform:uppercase; }
+.tag-publisher { background:var(–parchment); color:var(–ink); border:1px solid var(–border); }
+.tag-lang { background:#e8f0ea; color:var(–sage); border:1px solid #b8d0bc; }
+.tag-year { background:#fdf3e3; color:#8a6020; border:1px solid #e0c88a; }
+.tag-read { background:#e8f0ea; color:var(–sage); border:1px solid #b8d0bc; }
+.tag-unread { background:#f5f0e8; color:#888; border:1px solid #ddd; }
+.book-summary { margin-top:.5rem; font-size:.8rem; color:#555; line-height:1.55; font-family:‘Libre Baskerville’,serif; }
+.book-actions { display:flex; gap:.4rem; flex-direction:column; align-items:flex-end; flex-shrink:0; }
+.read-toggle { background:none; border:1.5px solid var(–border); border-radius:4px; padding:.35rem .7rem; font-size:.75rem; font-family:‘DM Sans’,sans-serif; cursor:pointer; transition:all .18s; white-space:nowrap; color:var(–ink); }
+.read-toggle:hover { border-color:var(–sage); background:#e8f0ea; color:var(–sage); }
+.is-read .read-toggle { background:#e8f0ea; border-color:var(–sage); color:var(–sage); }
+.no-results { text-align:center; padding:2.5rem; color:#999; font-family:‘Playfair Display’,serif; font-style:italic; }
+
+/* MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(26,18,8,.55); z-index:100; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(2px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(–cream); border-radius:8px; padding:1.75rem; width:100%; max-width:540px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(26,18,8,.3); animation:modalIn .25s ease; }
+@keyframes modalIn { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:none} }
+.modal h2 { font-family:‘Playfair Display’,serif; font-size:1.3rem; margin-bottom:1.25rem; color:var(–ink); }
+
+/* Scan zone */
+.scan-zone { border:2px dashed var(–border); border-radius:8px; padding:1.25rem; text-align:center; cursor:pointer; transition:all .2s; margin-bottom:1rem; background:#fff; position:relative; }
+.scan-zone:hover { border-color:var(–sage); background:#f0f5f1; }
+.scan-zone.dragging { border-color:var(–gold); background:#fdf8ee; }
+.scan-zone input[type=“file”] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.scan-zone-icon { font-size:2rem; margin-bottom:.4rem; }
+.scan-zone-text { font-size:.82rem; color:#777; }
+.scan-zone-text strong { color:var(–sage); display:block; margin-bottom:.2rem; }
+
+.scan-preview { display:none; align-items:center; gap:1rem; margin-bottom:1rem; background:#fff; border:1.5px solid var(–border); border-radius:6px; padding:.75rem; }
+.scan-preview.visible { display:flex; }
+.scan-preview img { width:60px; height:80px; object-fit:cover; border-radius:4px; border:1px solid var(–border); }
+.scan-preview-info { flex:1; font-size:.82rem; color:#666; }
+.scan-preview-info strong { color:var(–ink); font-size:.88rem; display:block; margin-bottom:.2rem; }
+
+.scan-btn { width:100%; margin-bottom:1rem; display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.scan-btn:disabled { opacity:.5; cursor:not-allowed; transform:none !important; }
+
+.scan-status { text-align:center; font-size:.82rem; padding:.6rem .9rem; border-radius:4px; margin-bottom:.75rem; display:none; }
+.scan-status.loading { display:block; background:#fdf8ee; color:#8a6020; border:1px solid #e0c88a; }
+.scan-status.success { display:block; background:#e8f0ea; color:var(–sage); border:1px solid #b8d0bc; }
+.scan-status.error { display:block; background:#fdf0ee; color:var(–rust); border:1px solid #e0b8b0; }
+
+.divider { display:flex; align-items:center; gap:.75rem; margin:1rem 0; color:#aaa; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; }
+.divider::before,.divider::after { content:’’; flex:1; height:1px; background:var(–border); }
+
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+.form-grid .full { grid-column:1/-1; }
+.form-group label { display:block; font-size:.72rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:#777; margin-bottom:.3rem; }
+.form-group input,.form-group select,.form-group textarea { padding:.6rem .85rem; }
+textarea { resize:vertical; min-height:80px; line-height:1.5; font-size:.85rem; }
+.modal-actions { display:flex; justify-content:flex-end; gap:.6rem; margin-top:1.25rem; }
+.read-checkbox-row { display:flex; align-items:center; gap:.6rem; padding:.6rem 0; }
+.read-checkbox-row input[type=“checkbox”] { width:18px; height:18px; accent-color:var(–sage); cursor:pointer; flex-shrink:0; }
+.read-checkbox-row label { font-size:.88rem; cursor:pointer; user-select:none; }
+
+@keyframes spin { to{transform:rotate(360deg)} }
+.spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-label">Collection personnelle</div>
+    <h1>Ma <em>Bibliothèque</em></h1>
+    <div class="header-stats">
+      <div class="stat"><span class="stat-num" id="stat-total">0</span><span class="stat-label">ouvrages</span></div>
+      <div class="stat"><span class="stat-num" id="stat-read">0</span><span class="stat-label">lus</span></div>
+      <div class="stat"><span class="stat-num" id="stat-unread">0</span><span class="stat-label">à lire</span></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Rechercher par titre, auteur…">
+    </div>
+    <select class="filter-select btn" id="filter-status" style="cursor:pointer">
+      <option value="all">Tous</option>
+      <option value="read">Lus</option>
+      <option value="unread">Non lus</option>
+    </select>
+    <select class="filter-select btn" id="filter-year" style="cursor:pointer">
+      <option value="all">Toutes années</option>
+    </select>
+    <button class="btn btn-camera" onclick="openModal()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Ajouter
+    </button>
+  </div>
+
+  <div class="section-title" id="results-label">Tous les ouvrages</div>
+  <div class="book-list" id="book-list"></div>
+</main>
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">Ajouter un ouvrage</h2>
+
+```
+<div id="scan-section">
+  <div class="scan-zone" id="scan-zone">
+    <input type="file" accept="image/*" capture="environment" id="cover-file" onchange="onFileChosen(event)">
+    <div class="scan-zone-icon">📷</div>
+    <div class="scan-zone-text">
+      <strong>Photographier ou importer la couverture</strong>
+      Glissez une image ici · ou cliquez pour choisir un fichier
+    </div>
+  </div>
+
+  <div class="scan-preview" id="scan-preview">
+    <img id="preview-img" src="" alt="Couverture">
+    <div class="scan-preview-info">
+      <strong id="preview-name"></strong>
+      <span id="preview-size"></span>
+    </div>
+    <button class="btn btn-sm" style="background:var(--border);color:var(--ink);flex-shrink:0" onclick="clearScan()">✕ Changer</button>
+  </div>
+
+  <button class="btn btn-camera scan-btn" id="scan-btn" onclick="scanCover()" disabled>
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M11 8v6M8 11h6"/></svg>
+    Analyser avec l'IA
+  </button>
+
+  <div class="scan-status" id="scan-status"></div>
+</div>
+
+<div class="divider" id="modal-divider">ou saisir manuellement</div>
+
+<div class="form-grid">
+  <div class="form-group full">
+    <label>Titre *</label>
+    <input type="text" id="f-title" placeholder="Titre de l'ouvrage" style="padding-left:.85rem">
+  </div>
+  <div class="form-group full">
+    <label>Auteur *</label>
+    <input type="text" id="f-author" placeholder="Prénom Nom" style="padding-left:.85rem">
+  </div>
+  <div class="form-group">
+    <label>Éditeur</label>
+    <input type="text" id="f-publisher" placeholder="ex. Gallimard" style="padding-left:.85rem">
+  </div>
+  <div class="form-group">
+    <label>Langue</label>
+    <select id="f-lang">
+      <option value="Français">Français</option>
+      <option value="Italien">Italien</option>
+      <option value="Anglais">Anglais</option>
+      <option value="Espagnol">Espagnol</option>
+      <option value="Allemand">Allemand</option>
+      <option value="Autre">Autre</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Année de publication</label>
+    <input type="number" id="f-pub-year" placeholder="ex. 2023" min="1000" max="2100" style="padding-left:.85rem">
+  </div>
+  <div class="form-group">
+    <label>Année de lecture</label>
+    <input type="number" id="f-read-year" placeholder="ex. 2024" min="1900" max="2100" style="padding-left:.85rem">
+  </div>
+  <div class="form-group full read-checkbox-row">
+    <input type="checkbox" id="f-read">
+    <label for="f-read">Marquer comme lu</label>
+  </div>
+  <div class="form-group full">
+    <label>Résumé / Notes</label>
+    <textarea id="f-summary" placeholder="Résumé, impressions personnelles…"></textarea>
+  </div>
+</div>
+
+<div class="modal-actions">
+  <button class="btn" style="background:var(--border);color:var(--ink)" onclick="closeModal()">Annuler</button>
+  <button class="btn btn-gold" onclick="saveBook()">Enregistrer</button>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+const INITIAL_BOOKS = [
+  {id:1,title:"San Francesco",author:"Alessandro Barbero",publisher:"Editori Laterza",lang:"Italien",pubYear:2024,readYear:null,read:false,cover:null,summary:"Biographie historique de François d'Assise par l'un des plus grands médiévistes italiens. Barbero retrace la vie du saint avec rigueur scientifique, explorant sa spiritualité radicale fondée sur la pauvreté et son influence durable sur l'Église médiévale."},
+  {id:2,title:"Le Sigisbée",author:"Mathilde Desaché",publisher:"Finitude",lang:"Français",pubYear:2024,readYear:null,read:false,cover:null,summary:"Roman historique se déroulant dans le XVIIIe siècle européen. Le « sigisbée » désigne un cavalier servant attitré d'une dame mariée. L'ouvrage explore les codes amoureux, les conventions sociales et les jeux de séduction de cette époque."},
+  {id:3,title:"Quello che possiamo sapere",author:"Ian McEwan",publisher:"Einaudi",lang:"Italien",pubYear:2023,readYear:null,read:false,cover:null,summary:"Fresque intimiste et historique retraçant la vie d'un homme ordinaire sur plusieurs décennies. Une méditation sur la mémoire, le destin et ce que l'on peut véritablement connaître de soi et des autres."},
+  {id:4,title:"American Spirits",author:"Russell Banks",publisher:"Actes Sud",lang:"Français",pubYear:2023,readYear:null,read:false,cover:null,summary:"Recueil de nouvelles testamentaire traduit par Pierre Furlan. Portrait saisissant de l'Amérique profonde, de ses laissés-pour-compte et de ses rêves brisés. Un Banks au sommet de son art."}
+];
+
+let books = JSON.parse(localStorage.getItem('biblio_books') || 'null') || INITIAL_BOOKS;
+let editingId = null;
+let currentImageBase64 = null;
+
+function save() { localStorage.setItem('biblio_books', JSON.stringify(books)); }
+
+function getFiltered() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const status = document.getElementById('filter-status').value;
+  const year = document.getElementById('filter-year').value;
+  return books.filter(b => {
+    const mQ = !q || b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    const mS = status==='all' || (status==='read'&&b.read) || (status==='unread'&&!b.read);
+    const mY = year==='all' || String(b.readYear)===year;
+    return mQ&&mS&&mY;
+  });
+}
+
+function render() {
+  const list = document.getElementById('book-list');
+  const filtered = getFiltered();
+  updateStats(); updateYearFilter();
+  document.getElementById('results-label').textContent = filtered.length===books.length
+    ? `Tous les ouvrages (${books.length})`
+    : `${filtered.length} résultat${filtered.length!==1?'s':''}`;
+  if(!filtered.length){list.innerHTML=`<div class="no-results">Aucun ouvrage trouvé.</div>`;return;}
+  list.innerHTML = filtered.map(b=>`
+    <div class="book-card ${b.read?'is-read':'not-read'}">
+      <div class="book-inner">
+        ${b.cover?`<img class="book-cover-thumb" src="${b.cover}" alt="Couverture">`:''}
+        <div class="book-main">
+          <div class="book-title">${esc(b.title)}</div>
+          <div class="book-author">${esc(b.author)}</div>
+          <div class="book-meta">
+            ${b.publisher?`<span class="tag tag-publisher">${esc(b.publisher)}</span>`:''}
+            ${b.lang?`<span class="tag tag-lang">${esc(b.lang)}</span>`:''}
+            ${b.pubYear?`<span class="tag tag-year">${b.pubYear}</span>`:''}
+            ${b.read?`<span class="tag tag-read">✓ Lu${b.readYear?' en '+b.readYear:''}</span>`:`<span class="tag tag-unread">À lire</span>`}
+          </div>
+          ${b.summary?`<div class="book-summary">${esc(b.summary)}</div>`:''}
+        </div>
+      </div>
+      <div class="book-actions">
+        <button class="read-toggle" onclick="toggleRead(${b.id})">${b.read?'✓ Lu':'○ Marquer lu'}</button>
+        <button class="btn btn-sm" style="background:var(--parchment);border:1.5px solid var(--border)" onclick="editBook(${b.id})">Éditer</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBook(${b.id})">Suppr.</button>
+      </div>
+    </div>`).join('');
+}
+
+function updateStats() {
+  const r = books.filter(b=>b.read).length;
+  document.getElementById('stat-total').textContent = books.length;
+  document.getElementById('stat-read').textContent = r;
+  document.getElementById('stat-unread').textContent = books.length-r;
+}
+function updateYearFilter() {
+  const sel = document.getElementById('filter-year');
+  const cur = sel.value;
+  const yrs = [...new Set(books.filter(b=>b.readYear).map(b=>b.readYear))].sort((a,b)=>b-a);
+  sel.innerHTML = '<option value="all">Toutes années</option>'+yrs.map(y=>`<option value="${y}"${String(y)===cur?' selected':''}>${y}</option>`).join('');
+}
+
+function toggleRead(id) {
+  const b = books.find(b=>b.id===id); if(!b) return;
+  b.read=!b.read;
+  if(b.read&&!b.readYear) b.readYear=new Date().getFullYear();
+  if(!b.read) b.readYear=null;
+  save(); render();
+}
+function deleteBook(id) {
+  if(!confirm('Supprimer cet ouvrage ?')) return;
+  books=books.filter(b=>b.id!==id); save(); render();
+}
+
+function openModal(book=null) {
+  editingId=book?book.id:null; currentImageBase64=null;
+  document.getElementById('modal-title').textContent = book?"Modifier l'ouvrage":"Ajouter un ouvrage";
+  document.getElementById('f-title').value=book?.title||'';
+  document.getElementById('f-author').value=book?.author||'';
+  document.getElementById('f-publisher').value=book?.publisher||'';
+  document.getElementById('f-lang').value=book?.lang||'Français';
+  document.getElementById('f-pub-year').value=book?.pubYear||'';
+  document.getElementById('f-read-year').value=book?.readYear||'';
+  document.getElementById('f-read').checked=book?.read||false;
+  document.getElementById('f-summary').value=book?.summary||'';
+  const isEdit=!!book;
+  document.getElementById('scan-section').style.display=isEdit?'none':'block';
+  document.getElementById('modal-divider').style.display=isEdit?'none':'flex';
+  clearScan();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function editBook(id){openModal(books.find(b=>b.id===id));}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingId=null;}
+
+function saveBook() {
+  const title=document.getElementById('f-title').value.trim();
+  const author=document.getElementById('f-author').value.trim();
+  if(!title||!author){alert('Titre et auteur sont requis.');return;}
+  const data={
+    title,author,
+    publisher:document.getElementById('f-publisher').value.trim(),
+    lang:document.getElementById('f-lang').value,
+    pubYear:parseInt(document.getElementById('f-pub-year').value)||null,
+    readYear:parseInt(document.getElementById('f-read-year').value)||null,
+    read:document.getElementById('f-read').checked,
+    summary:document.getElementById('f-summary').value.trim(),
+    cover:currentImageBase64||(editingId?books.find(b=>b.id===editingId)?.cover:null)||null
+  };
+  if(editingId){const i=books.findIndex(b=>b.id===editingId);books[i]={...books[i],...data};}
+  else{data.id=Date.now();books.push(data);}
+  save();closeModal();render();
+}
+
+/* ─── PHOTO SCAN ─── */
+function onFileChosen(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const url=ev.target.result;
+    currentImageBase64=url;
+    document.getElementById('preview-img').src=url;
+    document.getElementById('preview-name').textContent=file.name;
+    document.getElementById('preview-size').textContent=(file.size/1024).toFixed(0)+' Ko';
+    document.getElementById('scan-preview').classList.add('visible');
+    document.getElementById('scan-zone').style.display='none';
+    document.getElementById('scan-btn').disabled=false;
+    setStatus('','');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearScan() {
+  currentImageBase64=null;
+  document.getElementById('cover-file').value='';
+  document.getElementById('preview-img').src='';
+  document.getElementById('scan-preview').classList.remove('visible');
+  document.getElementById('scan-zone').style.display='block';
+  document.getElementById('scan-btn').disabled=true;
+  setStatus('','');
+}
+
+function setStatus(type,msg){
+  const el=document.getElementById('scan-status');
+  el.className='scan-status'+(type?' '+type:'');
+  el.textContent=msg;
+}
+
+async function scanCover() {
+  if(!currentImageBase64) return;
+  const btn=document.getElementById('scan-btn');
+  btn.disabled=true;
+  btn.innerHTML=`<span class="spinner"></span> Analyse en cours…`;
+  setStatus('loading','🔍 L\'IA lit la couverture et recherche les informations…');
+
+  const base64Data=currentImageBase64.split(',')[1];
+  const mediaType=currentImageBase64.split(';')[0].split(':')[1]||'image/jpeg';
+
+  try {
+    const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{
+          role:"user",
+          content:[
+            {type:"image",source:{type:"base64",media_type:mediaType,data:base64Data}},
+            {type:"text",text:`Tu es un expert bibliothécaire. Analyse cette photo de couverture de livre.
+Réponds UNIQUEMENT avec un objet JSON valide, sans markdown ni backticks, avec exactement ces champs :
+{
+  "title": "titre exact visible sur la couverture",
+  "author": "nom complet de l'auteur visible sur la couverture",
+  "publisher": "nom de l'éditeur visible sur la couverture",
+  "lang": "langue du livre — UNIQUEMENT une de ces valeurs : Français, Italien, Anglais, Espagnol, Allemand, Autre",
+  "pubYear": null ou année entière si visible,
+  "summary": "résumé de 2-3 phrases de l'œuvre basé sur ta connaissance générale du livre"
+}
+Si une information n'est pas visible, mets null (nombres) ou "" (textes), sauf lang et summary que tu peux déduire.`}
+          ]
+        }]
+      })
+    });
+    const data=await resp.json();
+    if(!resp.ok) throw new Error(data.error?.message||'Erreur API');
+    const text=data.content?.find(c=>c.type==='text')?.text||'';
+    const clean=text.replace(/```json|```/g,'').trim();
+    const p=JSON.parse(clean);
+
+    if(p.title) document.getElementById('f-title').value=p.title;
+    if(p.author) document.getElementById('f-author').value=p.author;
+    if(p.publisher) document.getElementById('f-publisher').value=p.publisher;
+    if(p.lang){const s=document.getElementById('f-lang');const o=[...s.options].find(x=>x.value===p.lang);if(o)s.value=p.lang;}
+    if(p.pubYear) document.getElementById('f-pub-year').value=p.pubYear;
+    if(p.summary) document.getElementById('f-summary').value=p.summary;
+
+    setStatus('success','✓ Informations extraites ! Vérifiez et corrigez si nécessaire avant d\'enregistrer.');
+  } catch(err) {
+    console.error(err);
+    setStatus('error','✗ Échec de l\'analyse. Veuillez saisir les informations manuellement.');
+  } finally {
+    btn.disabled=false;
+    btn.innerHTML=`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M11 8v6M8 11h6"/></svg> Analyser avec l'IA`;
+  }
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+document.getElementById('search-input').addEventListener('input',render);
+document.getElementById('filter-status').addEventListener('change',render);
+document.getElementById('filter-year').addEventListener('change',render);
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// Drag & drop
+const zone=document.getElementById('scan-zone');
+zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragging');});
+zone.addEventListener('dragleave',()=>zone.classList.remove('dragging'));
+zone.addEventListener('drop',e=>{
+  e.preventDefault();zone.classList.remove('dragging');
+  const file=e.dataTransfer.files[0];
+  if(file&&file.type.startsWith('image/')){
+    onFileChosen({target:{files:[file]}});
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
